@@ -44,11 +44,11 @@ SYSFS_MAX=60                                         # led_anim max_scale ceilin
 BACKEND=none                                         # set by DETECT_BACKEND at startup: serial | sysfs
 BOARD_NAME=$(cat /opt/muos/device/config/board/name 2>/dev/null)
 # muOS's own script/device/rgb.sh swaps the L/R led_anim zones to GRB byte order
-# on the TrimUI Brick Pro ONLY (M / F1 / F2 stay RGB); we follow it so our colours
+# on the TrimUI Brick Pro ONLY (M / F1 / F2 stay RGB); we follow it so our colors
 # match muOS's firmware on that board. 0 (= plain RGB) on every other device incl.
 # all H700 serial models, so this flag is a no-op except on a real tui-brick-pro.
 case "$BOARD_NAME" in tui-brick-pro) SYSFS_LR_GRB=1 ;; *) SYSFS_LR_GRB=0 ;; esac
-# Battery: muOS's own normalised runtime files + its own low-battery threshold,
+# Battery: muOS's own normalized runtime files + its own low-battery threshold,
 # so our policy fires at the exact point muOS considers the battery low.
 BATT_CAP="$MUOS_RUN_DIR/battery/capacity"
 BATT_CHG="$MUOS_RUN_DIR/battery/charging"           # non-zero = plugged/charging
@@ -81,14 +81,14 @@ SCREEN_LED_FLOOR=20
 
 # ---------------------------------------------------------------- react tuning
 MARGIN_PERCENT=5      # ignored screen border per side (0-50); smaller = sample closer to the frame edge
-OVERLAP_PERCENT=15    # centre band (% of width) fed to BOTH sticks so centred content bleeds both ways; 0 = hard split
+OVERLAP_PERCENT=15    # center band (% of width) fed to BOTH sticks so centered content bleeds both ways; 0 = hard split
 GRID_COLS=5           # sample columns; these decide the left/right split, so they carry the real work
 GRID_ROWS=6           # sample rows, fixed and EVEN: rows alternate a quarter-column left/right, so an odd
                       # count leans the whole grid one way (3 rows shifted right vs 2 left, on a 5-row panel)
-SATURATION_BOOST=350  # dull colour boost (100: none, 200: 2x)
-VALUE_GAIN_MAX=350    # value-normalise: lift the averaged colour toward full brightness, capped at this % (100: off, 350: up to 3.5x). Keeps dark-bg+bright-edge scenes vivid without blasting near-black ones.
+SATURATION_BOOST=350  # dull color boost (100: none, 200: 2x)
+VALUE_GAIN_MAX=350    # value-normalize: lift the averaged color toward full brightness, capped at this % (100: off, 350: up to 3.5x). Keeps dark-bg+bright-edge scenes vivid without blasting near-black ones.
 SAMPLE_INTERVAL_MS=333
-# Colour smoothing: each frame closes REACT_SMOOTH / (frames per sample) % of the gap to the
+# Color smoothing: each frame closes REACT_SMOOTH / (frames per sample) % of the gap to the
 # newest sample - 300 / 10 = 30%, so ~97% there by the next sample. Higher = snappier,
 # lower = softer (clamped to 10..50%). User-tuned 2026-10-18: 250 felt too slow, 370 too fast.
 REACT_SMOOTH=300
@@ -109,7 +109,7 @@ RESUME_GAP_MS=5000
 
 # Fades (user-tuned 2026-10-18). Every full on/off - sleep and wake, idle dim, the charge
 # screen, Off in the app, startup - ramps over FADE_MS. A mode switch dips through black:
-# MODE_FADE_MS out, then MODE_FADE_MS in. Colour and brightness changes stay instant.
+# MODE_FADE_MS out, then MODE_FADE_MS in. Color and brightness changes stay instant.
 # The level runs 0..FADE_MAX and the brightness byte follows its SQUARE: the LED's light
 # is ~linear in the byte and the eye is not, so a squared ramp looks even.
 FADE_MS=500
@@ -142,7 +142,7 @@ SERIAL_PREPARE() {
 	SERIAL_READY=1
 }
 
-# mode 1: solid colour per stick (right 8 LEDs then left) -> [1,bri,(RGB)x8,(RGB)x8,chk]
+# mode 1: solid color per stick (right 8 LEDs then left) -> [1,bri,(RGB)x8,(RGB)x8,chk]
 # The senders below clamp and checksum with builtins (no fork): fades call them up to 30
 # times a second. CK_SUM sets CK; BYTE_CLAMP sets BC.
 CK_SUM()     { CK=0; for x in "$@"; do CK=$(((CK + x) & 255)); done; }
@@ -158,7 +158,7 @@ SEND_STATIC() { # bri  rr rg rb  lr lg lb
 	CK_SUM "$@"; SERIAL_WRITE "$@" "$CK"
 }
 
-# modes 2/3/4: breath fast/med/slow, single colour -> [mode,bri,(RGB)x16,chk]
+# modes 2/3/4: breath fast/med/slow, single color -> [mode,bri,(RGB)x16,chk]
 SEND_BREATH() { # mode bri  r g b
 	m=$1; BYTE_CLAMP "$2"; bri=$BC; r=$3 g=$4 b=$5
 	LAST_OUT="breath $m $r $g $b"; LAST_BRI=$bri
@@ -175,7 +175,7 @@ SEND_ANIM() { # mode bri speed
 }
 
 # Firmware anim speed byte for modes 5/6; HIGHER = faster. Rainbow keeps the
-# original 4/10/20. Colour Cycle read as too fast at every setting and now has its
+# original 4/10/20. Color Cycle read as too fast at every setting and now has its
 # own hand-picked row, device-tuned 2026-09-11 - these are chosen values, not a
 # scale factor off Rainbow, so retune by editing the CYCLE row directly. Both modes
 # share the mode-5/6 frame builder, so scaling at the call site would drag Rainbow
@@ -187,7 +187,7 @@ BREATH_MODE()      { case "$1" in slow) echo 4  ;; fast) echo 2  ;; *) echo 3  ;
 RGB_OF() { printf '%s' "$1" | tr ',' ' '; } # "0,208,255" -> "0 208 255"
 
 # ---------------------------------------------------------------- led_anim (TrimUI) backend
-# Uniform per-zone colour via the sysfs effect system (effect_* + effect_enable=1). We
+# Uniform per-zone color via the sysfs effect system (effect_* + effect_enable=1). We
 # deliberately avoid the per-LED frame_hex path: its second-write kernel block is an
 # uninterruptible hang, unsafe to drive on hardware we can't test. Every zone is
 # feature-probed, so the same code lights a Smart Pro's rings and a Brick's top bar /
@@ -196,8 +196,8 @@ SYSFS_HAS()   { [ -w "$LED_SYSFS/$1" ]; }
 SYSFS_WRITE() { [ -w "$LED_SYSFS/$1" ] && printf '%s\n' "$2" >"$LED_SYSFS/$1"; }
 TOHEX()       { printf '%02X%02X%02X' "$1" "$2" "$3"; }
 
-# static colour per side (right first, matching SEND_STATIC). left -> l + f1, right ->
-# r + f2, blend -> m (the centred logo / top-bar); combined lr when both sides match.
+# static color per side (right first, matching SEND_STATIC). left -> l + f1, right ->
+# r + f2, blend -> m (the centered logo / top-bar); combined lr when both sides match.
 SYSFS_STATIC() { # bri  rr rg rb  lr lg lb
 	sb=$(( $(CLAMP "$1" 0 255) * SYSFS_MAX / 255 ))
 	rr=$(CLAMP "$2" 0 255) rg=$(CLAMP "$3" 0 255) rb=$(CLAMP "$4" 0 255)
@@ -229,7 +229,7 @@ SYSFS_STATIC() { # bri  rr rg rb  lr lg lb
 	SYSFS_HAS effect_rgb_hex_f1 && SYSFS_WRITE effect_rgb_hex_f1 "$hexL"
 	SYSFS_HAS effect_rgb_hex_f2 && SYSFS_WRITE effect_rgb_hex_f2 "$hexR"
 
-	# static-colour effect (4) on whatever zones exist, then arm the effect system.
+	# static-color effect (4) on whatever zones exist, then arm the effect system.
 	if SYSFS_HAS effect_lr; then SYSFS_WRITE effect_lr 4
 	else SYSFS_WRITE effect_l 4; SYSFS_WRITE effect_r 4; fi
 	SYSFS_HAS effect_m  && SYSFS_WRITE effect_m 4
@@ -292,7 +292,7 @@ FADE_OUT() { # $1 = ms for a full fade
 
 # render the current one-shot mode at a given brightness (all modes but react).
 # breathing/cycle/rainbow are H700 firmware animations; the sysfs backend has no usable
-# firmware anim, so there they fall back to a static colour. The UI already hides them
+# firmware anim, so there they fall back to a static color. The UI already hides them
 # on sysfs, so that path only guards a stale/imported config.
 RENDER_ONESHOT() { # $1 = effective brightness
 	bri=$1
@@ -308,7 +308,7 @@ RENDER_ONESHOT() { # $1 = effective brightness
 			set -- $(RGB_OF "$COL"); PUT_STATIC "$bri" "$1" "$2" "$3" "$1" "$2" "$3" ;;
 		stickreact)
 			# Reached only with no joystick node, or on the led_anim backend which has
-			# no per-LED path: show the ring at rest so the mode still has its colour.
+			# no per-LED path: show the ring at rest so the mode still has its color.
 			set -- $(RGB_OF "$PULSE_BG")
 			sr_fb_r=$(( $1 * SR_BG_SCALE / 100 )); sr_fb_g=$(( $2 * SR_BG_SCALE / 100 )); sr_fb_b=$(( $3 * SR_BG_SCALE / 100 ))
 			PUT_STATIC "$bri" "$sr_fb_r" "$sr_fb_g" "$sr_fb_b" "$sr_fb_r" "$sr_fb_g" "$sr_fb_b" ;;
@@ -345,7 +345,7 @@ LB_RENDER() { # $1 = effective brightness
 }
 
 # ---------------------------------------------------------------- react engine
-BOOST_COLOUR() {
+BOOST_COLOR() {
 	# $1-3 weighted RGB sums, $4 total weight -> BR BG BB (boosted, clamped)
 	if [ "$4" -le 0 ]; then BR=0 BG=0 BB=0; return; fi
 
@@ -362,7 +362,7 @@ BOOST_COLOUR() {
 
 	# Hue-preserving saturation boost: anchor to MAX (the value) and scale each
 	# channel's gap below it. This keeps the brightest channel fixed and preserves
-	# the hue ratio exactly, so a near-primary colour can't drift (e.g. red stays
+	# the hue ratio exactly, so a near-primary color can't drift (e.g. red stays
 	# red instead of picking up a magenta cast from a tiny blue>green imbalance).
 	# Anchoring on the arithmetic mean instead would amplify that imbalance.
 	BR=$((MAX - (MAX - AR) * BOOST / 100))
@@ -373,11 +373,11 @@ BOOST_COLOUR() {
 	[ "$BG" -lt 0 ] && BG=0; [ "$BG" -gt 255 ] && BG=255
 	[ "$BB" -lt 0 ] && BB=0; [ "$BB" -gt 255 ] && BB=255
 
-	# Value-normalise: scale the colour up so its brightest channel reaches full,
+	# Value-normalize: scale the color up so its brightest channel reaches full,
 	# preserving hue+saturation, so a dark scene with bright areas still lights the
 	# sticks fully. GAIN is capped at VALUE_GAIN_MAX so a genuinely near-black scene
-	# is only lifted a little, not blasted to full colour. LED brightness is applied
-	# separately downstream, so this only touches the *colour*, never overall level.
+	# is only lifted a little, not blasted to full color. LED brightness is applied
+	# separately downstream, so this only touches the *color*, never overall level.
 	VMAX=$BR && [ "$BG" -gt "$VMAX" ] && VMAX=$BG
 	[ "$BB" -gt "$VMAX" ] && VMAX=$BB
 	if [ "$VMAX" -gt 0 ] && [ "$VALUE_GAIN_MAX" -gt 100 ]; then
@@ -393,7 +393,7 @@ BOOST_COLOUR() {
 
 SAMPLE() {
 	# Read the staggered grid of pixels (FB_PTS, built by REACT_SETUP) and set the
-	# TARGET colours. Vivid pixels carry more weight; sides are split for dual stick
+	# TARGET colors. Vivid pixels carry more weight; sides are split for dual stick
 	# devices. fb_sampler.py, when it is up, reads the pixels and does this weighting in
 	# one request (no forks, and more points cost next to nothing); else a dd|od per
 	# pixel and the loop below. THE PYTHON WEIGHTING MIRRORS THIS LOOP - change both.
@@ -429,7 +429,7 @@ SAMPLE() {
 		if [ "$STICK_COUNT" -eq 1 ]; then
 			WR=$((WR + R * W)) WG=$((WG + G * W)) WB=$((WB + B * W)) WT=$((WT + W))
 		else
-			# Overlap: a pixel in the centre band satisfies both tests and lands
+			# Overlap: a pixel in the center band satisfies both tests and lands
 			# in both sums. Outside the band exactly one test holds (hard split).
 			if [ "$PX" -lt "$LEFT_BOUND" ]; then
 				WR_L=$((WR_L + R * W)) WG_L=$((WG_L + G * W)) WB_L=$((WB_L + B * W)) WT_L=$((WT_L + W))
@@ -441,13 +441,13 @@ SAMPLE() {
 	done
 
 	if [ "$STICK_COUNT" -eq 1 ]; then
-		BOOST_COLOUR "$WR" "$WG" "$WB" "$WT"
+		BOOST_COLOR "$WR" "$WG" "$WB" "$WT"
 		TARGET_RL=$BR TARGET_GL=$BG TARGET_BL=$BB
 		TARGET_RR=$BR TARGET_GR=$BG TARGET_BR=$BB
 	else
-		BOOST_COLOUR "$WR_L" "$WG_L" "$WB_L" "$WT_L"
+		BOOST_COLOR "$WR_L" "$WG_L" "$WB_L" "$WT_L"
 		TARGET_RL=$BR TARGET_GL=$BG TARGET_BL=$BB
-		BOOST_COLOUR "$WR_R" "$WG_R" "$WB_R" "$WT_R"
+		BOOST_COLOR "$WR_R" "$WG_R" "$WB_R" "$WT_R"
 		TARGET_RR=$BR TARGET_GR=$BG TARGET_BR=$BB
 	fi
 }
@@ -624,7 +624,7 @@ REACT_FRAME() { # $1 = effective brightness
 	SMOOTH "$CURR_BR" "$TARGET_BR" && CURR_BR=$SM
 
 	# PUT_STATIC takes right stick first, then left. Send only what changed: once the
-	# colours reach their targets (SMOOTH always moves at least 1 while they differ, so an
+	# colors reach their targets (SMOOTH always moves at least 1 while they differ, so an
 	# unchanged frame means settled), nothing can change before the next sample - so
 	# sleep until then rather than re-sending the same frame 30 times a second.
 	rf_sig="$1 $CURR_RR $CURR_GR $CURR_BR $CURR_RL $CURR_GL $CURR_BL"
@@ -657,7 +657,7 @@ READ_IDLE() { # sets IDLE_VAL: 0 (awake) or non-zero (dim/suspend). No fork (was
 
 # Is the panel's backlight at 0? Parses the display driver's status (builtin reads, no
 # fork). Anything missing or unreadable counts as lit, so a board without this file
-# simply keeps the old behaviour.
+# simply keeps the old behavior.
 BACKLIGHT_OFF() {
 	[ -r "$DISP_SYS" ] || return 1
 	while IFS= read -r ds_line; do
@@ -713,7 +713,7 @@ BATTERY_LOW() { # 0 = low & discharging, 1 = not low (mirrors muOS lowpower.sh)
 	read -r cap <"$BATT_CAP" 2>/dev/null
 	case "$cap" in '' | *[!0-9]*) return 1 ;; esac
 
-	# honour muOS's own threshold; fall back only if it can't be read
+	# honor muOS's own threshold; fall back only if it can't be read
 	thr=""
 	[ -r "$LOWBATT_CONF" ] && read -r thr <"$LOWBATT_CONF" 2>/dev/null
 	case "$thr" in '' | *[!0-9]*) thr=$LOWBATT_FALLBACK ;; esac
@@ -751,7 +751,7 @@ DETECT_SCREEN_BRIGHT() { # sets SCREEN_BRI_FILE / SCREEN_BRI_MAX ("" = none foun
 		SCREEN_BRI_FILE=$MUOS_BRIGHT_VAL
 		sb_m=""
 		[ -r "$MUOS_BRIGHT_MAX" ] && read -r sb_m <"$MUOS_BRIGHT_MAX" 2>/dev/null
-		# a board that stores a sysfs path in this key (screen/colour next to it does
+		# a board that stores a sysfs path in this key (screen/color next to it does
 		# exactly that) is not a ceiling - anything but a positive integer means 0-255
 		case "$sb_m" in '' | 0 | *[!0-9]*) sb_m=255 ;; esac
 		SCREEN_BRI_MAX=$sb_m
@@ -807,12 +807,12 @@ RESOLVE_BRIGHT() {
 # Stick React: the ring rests at PULSE_BG, and an arc of PULSE_FG points wherever the
 # stick is pushed. The arc is drawn fresh each frame from where the stick points now, so
 # it follows instantly and a spin sweeps a clean arc round the ring with no trail. The
-# only memory is one fade level per stick: it rises when the stick leaves centre (faster
-# the harder the push, full colour either way) and falls on release, with the arc held
+# only memory is one fade level per stick: it rises when the stick leaves center (faster
+# the harder the push, full color either way) and falls on release, with the arc held
 # where the stick last pointed. Inspired by SilkyRGB's "Input Pulse"
 # (doughn0/SilkyRGB), whose measured LED angles for this board are used below; the
 # effect itself is our own. This is NOT a firmware mode - it is the same per-LED serial
-# mode 1 that every static render already uses, just with 16 different colours in the
+# mode 1 that every static render already uses, just with 16 different colors in the
 # packet.
 
 JS_DIR="/dev/input"
@@ -841,16 +841,16 @@ JS_KIND=""                                   # py | sh: which reader JS_PID is
 SR_ANG_R="117 75 5 330 295 260 200 160"
 SR_ANG_L="5 330 295 260 200 160 117 75"
 
-SR_FADE=80         # degrees past the LED nearest the stick over which the pulse colour
-                   # fades into the ring colour - THE knob for how wide the arc reads.
-                   # The nearest LED is full pulse colour at any value; at 80 an LED 35
-                   # degrees further on is 58% pulse colour and one 80+ away is plain ring
-                   # colour. Lower is tighter, but a stick between two LEDs hands over
+SR_FADE=80         # degrees past the LED nearest the stick over which the pulse color
+                   # fades into the ring color - THE knob for how wide the arc reads.
+                   # The nearest LED is full pulse color at any value; at 80 an LED 35
+                   # degrees further on is 58% pulse color and one 80+ away is plain ring
+                   # color. Lower is tighter, but a stick between two LEDs hands over
                    # across SR_FADE/2 degrees of travel, so far lower steps LED to LED on
                    # a spin. Device-tuned 2026-09-11: 45 read too tight; widened ~15%
                    # (70 -> 80) on 2026-09-16, which lifts the arc's shoulders and puts
                    # 4-5 LEDs in play at once instead of 3-4.
-SR_DEADZONE=30     # % deflection below which the stick counts as centred
+SR_DEADZONE=30     # % deflection below which the stick counts as centered
 SR_DECAY=1200      # fade level lost per frame once the stick is back in the deadzone
                    # (0..10000) -> 9 frames, ~0.3s. THE knob for how quickly the arc
                    # fades out: fade seconds = 10000 / SR_DECAY / 30fps, and higher is
@@ -868,7 +868,7 @@ SR_FRAME_MS=33     # ~30fps: plenty for 8 LEDs a side
 # (activation/10000)^(1/2.2) -> a 0..255 blend weight; 101 entries indexed by
 # activation/100. 2.2 is the exponent BRIGHT_CURVE uses, inverted. The lift keeps the
 # edge of the arc and the tail of a fade visible instead of letting them sink into the
-# ring colour early. A lookup table for the same reason as BRIGHT_CURVE - there is no
+# ring color early. A lookup table for the same reason as BRIGHT_CURVE - there is no
 # float pow in POSIX sh.
 SR_GAMMA="0 31 43 52 59 65 71 76 81 85 90 93 97 101 104 108 111 114 117 120 123 125 128 131 133 136 138 141 143 145 148 150 152 154 156 158 160 162 164 166 168 170 172 174 176 177 179 181 183 184 186 188 189 191 193 194 196 198 199 201 202 204 205 207 208 210 211 213 214 215 217 218 220 221 222 224 225 226 228 229 230 232 233 234 236 237 238 239 241 242 243 244 246 247 248 249 250 251 253 254 255"
 
@@ -894,7 +894,7 @@ SR_ISQRT() { # n -> SR_SQ
 }
 
 # Compass bearing of a stick vector (0 = up, 90 = right, clockwise), or -1 when the
-# stick is centred. The axis y is raw, i.e. down-positive, so north is -y. POSIX sh has
+# stick is centered. The axis y is raw, i.e. down-positive, so north is -y. POSIX sh has
 # no atan2, so fold the vector into the first octant, look the angle up in SR_ATAN and
 # unfold it again.
 SR_BEARING() { # x y -> SR_DIR
@@ -924,7 +924,7 @@ SR_MAG() { # x y -> SR_PCT
 }
 
 # Advance ONE stick's fade level by a frame. $1 = fade level (0..10000), $2 = the
-# bearing its arc is drawn at, $3 = stick bearing now (-1 when centred),
+# bearing its arc is drawn at, $3 = stick bearing now (-1 when centered),
 # $4 = deflection %. Sets SR_E and SR_B.
 SR_STEP() {
 	SR_E=$1 SR_B=$2
@@ -944,7 +944,7 @@ SR_STEP() {
 }
 
 # Render ONE ring. $1 = its angle list, $2 = the arc's bearing (-1 = not lit yet),
-# $3 = fade level. Sets SR_RGB (24 colour bytes in packet order) and SR_SUM (their
+# $3 = fade level. Sets SR_RGB (24 color bytes in packet order) and SR_SUM (their
 # running total, so the frame checksum costs no extra pass). Keeps no state of its own:
 # the picture depends only on where the arc points and how far it has faded, which is
 # why a spin leaves no trail.
@@ -956,8 +956,8 @@ SR_RING() {
 	# The falloff is measured from the LED NEAREST the arc's bearing, not from the
 	# bearing itself, so that LED is always exactly PULSE_FG. With 8 unevenly spaced LEDs
 	# the stick nearly always sits between two, and measuring from the stick left the
-	# brightest LED in the widest gap at 56% - the pulse colour visibly tinted by the ring
-	# colour (user-reported 2026-09-11). A stick between two LEDs lights both in
+	# brightest LED in the widest gap at 56% - the pulse color visibly tinted by the ring
+	# color (user-reported 2026-09-11). A stick between two LEDs lights both in
 	# proportion, and the nearest LED's distance changes continuously as the stick turns,
 	# so nothing jumps.
 	sr_dmin=0
@@ -979,8 +979,8 @@ SR_RING() {
 			sr_d=$(( sr_d - sr_dmin ))            # ...measured past the nearest LED
 			if [ "$sr_d" -lt "$SR_FADE" ]; then
 				# Falloff SQUARED, times the fade level. Squared because SR_GAMMA lifts
-				# low activations (10% is already 35% pulse colour), and a linear falloff
-				# let the edge of the arc glow nearly as strongly as its centre.
+				# low activations (10% is already 35% pulse color), and a linear falloff
+				# let the edge of the arc glow nearly as strongly as its center.
 				sr_f=$(( (SR_FADE - sr_d) * 100 / SR_FADE ))
 				sr_v=$(( sr_f * sr_f * sr_e / 10000 ))
 				if [ "$sr_v" -ge 100 ]; then
@@ -1198,10 +1198,10 @@ SR_DRAIN() {
 }
 
 # Send one per-LED frame, then hold the ~30 fps cadence (SR_FRAME_MS). Shared by
-# Stick React and Sparkle. $1 = brightness, $2 = the 48 colour bytes in packet order,
+# Stick React and Sparkle. $1 = brightness, $2 = the 48 color bytes in packet order,
 # $3 = their sum, $4 = when the frame started (NOW_MS).
 #
-# Only touch the serial port when the picture actually CHANGED. A centred stick, or a
+# Only touch the serial port when the picture actually CHANGED. A centered stick, or a
 # ring between glints, renders the same 48 bytes every frame, so a still picture costs
 # no writes at all - the LEDs hold their own state between writes. Nothing else writes
 # them while MustardOS's RGB mode is External, so there is no periodic resend.
@@ -1210,7 +1210,7 @@ LED_FRAME_RESET() { LF_LAST=""; }
 LED_FRAME_OUT() {
 	if [ "$1:$2" != "$LF_LAST" ]; then
 		SERIAL_PREPARE_ONCE
-		# The checksum was accumulated as the colours were built, so the frame needs no
+		# The checksum was accumulated as the colors were built, so the frame needs no
 		# second pass and no CHECKSUM subshell.
 		SERIAL_WRITE 1 "$1" $2 "$(( (1 + $1 + $3) & 255 ))"
 		LF_LAST="$1:$2"
@@ -1237,7 +1237,7 @@ SR_FRAME() { # $1 = effective brightness
 	NOW_MS; sr_t0=$NOW
 
 	# Axes, written by the reader as "LX LY RX RY". A torn or missing line reuses the
-	# last good one rather than snapping the ring back to centre for a frame.
+	# last good one rather than snapping the ring back to center for a frame.
 	sr_line=""
 	[ -r "$JS_STATE" ] && read -r sr_line <"$JS_STATE" 2>/dev/null
 	set -- $sr_line
@@ -1291,7 +1291,7 @@ SR_FRAME() { # $1 = effective brightness
 # serial mode 1 frames as Stick React, through LED_FRAME_OUT, and borrows SR_NTH.
 
 SP_BG_SCALE=50     # the ring between glints sits at this % of SPARK_BG, so a glint at
-                   # full SPARK_FG reads brighter as well as a different colour
+                   # full SPARK_FG reads brighter as well as a different color
                    # (user-tuned 2026-09-12: 70 -> 50, for more contrast; 40 tried on
                    # device 2026-09-16 and reverted - 50 is the settled value)
 
@@ -1333,7 +1333,7 @@ SP_RESET() {
 	# Two sticks take turns. A board with one ring mirrors each glint into both halves
 	# of the packet instead: the packet always carries 16 LEDs and nothing tells us
 	# which half is the real one. SP_RECENT remembers the last picks - half the LEDs in
-	# play - so glints keep moving around the ring instead of favouring a corner.
+	# play - so glints keep moving around the ring instead of favoring a corner.
 	if [ "${STICK_COUNT:-2}" -ge 2 ]; then
 		SP_TWO=1 SP_RECENT_N=8
 	else
@@ -1343,8 +1343,8 @@ SP_RESET() {
 		SP_TWO=0 SP_RECENT_N=4 SP_INTERVAL=$(( SP_INTERVAL * 2 ))
 	fi
 	SP_RECENT=""
-	# The ring colour between glints, worked out once. x70/100 is exactly what the
-	# blend below gives at weight 0, so a glint ends on the very colour it started from.
+	# The ring color between glints, worked out once. x70/100 is exactly what the
+	# blend below gives at weight 0, so a glint ends on the very color it started from.
 	sp_r=$(( SP_BG_R * SP_BG_SCALE / 100 )); sp_g=$(( SP_BG_G * SP_BG_SCALE / 100 ))
 	sp_b=$(( SP_BG_B * SP_BG_SCALE / 100 ))
 	SP_REST="$sp_r $sp_g $sp_b"; SP_REST_SUM=$(( sp_r + sp_g + sp_b ))
@@ -1464,10 +1464,10 @@ LOAD_CONFIG() {
 	BRI_DIRECT=$(CLAMP "$(CFG brightness 200)" 0 255)
 	BRIGHT_MODE=$(CFG bright_mode screen)   # RESOLVE_BRIGHT falls back to Direct without a backlight
 	SPEED=$(CFG speed med)
-	COL=$(CFG colour 0,208,255)
+	COL=$(CFG color 0,208,255)
 	COMBO_R=$(CFG combo_r 255,94,19)
 	COMBO_L=$(CFG combo_l 138,43,226)
-	THEME_COL=$(CFG theme_colour 255,170,50)
+	THEME_COL=$(CFG theme_color 255,170,50)
 	LOWBATT_ACTION=$(CFG lowbatt_action none)
 	# Stick React: a = the ring at rest, b = the directional pulse (default Cyberpunk).
 	PULSE_BG=$(CFG pulse_bg 0,255,255)
@@ -1537,7 +1537,7 @@ fi
 
 # Leave for Off without ever swallowing the next mode. The next press can land while
 # we are still on our way out - from Stick React that takes ~1.5s (reader shutdown,
-# joystick release) - and `rgbctl apply` then signalled a daemon that was about to exit,
+# joystick release) - and `rgbctl apply` then signaled a daemon that was about to exit,
 # so the new mode never started: sticks dark, the app showing Stick React
 # (device-reproduced 2026-09-11). Every apply writes settings.cfg BEFORE it looks for
 # our pid, so finish the slow cleanup, give the pidfile up, and only then read the mode
@@ -1625,7 +1625,7 @@ while :; do
 		if [ "$MODE" = off ]; then OFF_EXIT; PREV_MODE=off; continue; fi
 		# A new mode dips through black: the old picture fades out (replayed, so the
 		# reload replacing the old mode's variables doesn't matter), the new one fades in.
-		# Any other change (colour, speed, brightness) applies at once. While the
+		# Any other change (color, speed, brightness) applies at once. While the
 		# low-battery breath stands in for the mode the picture doesn't change: no dip.
 		if [ "$LB_RED" = 0 ] && [ -n "$PREV_MODE" ] && [ "$MODE" != "$PREV_MODE" ] && [ "$FADE_T" -gt 0 ]; then
 			FADE_OUT "$MODE_FADE_MS"
@@ -1783,7 +1783,7 @@ while :; do
 		SP_FRAME "$OUT_BRI"
 		LAST_SIG="sparkle"
 	else
-		# Static colours, firmware animations and the low-battery breath hold on their
+		# Static colors, firmware animations and the low-battery breath hold on their
 		# own once sent, and nothing else writes the LEDs while MustardOS's RGB mode is
 		# External, so send only when the picture changes: a config reload, a wake or a
 		# low-battery switch (all set LAST_SIG to __reload__) or a new output brightness

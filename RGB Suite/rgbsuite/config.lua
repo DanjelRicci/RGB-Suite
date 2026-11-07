@@ -3,14 +3,14 @@
 -- change, and pokes the rgb_suite daemon via `rgbctl.sh apply`.
 
 local tables = require("tables")
-local colour = require("colour")
+local color = require("color")
 
 local config = {}
 
 -- Display <-> internal id maps.
 local MODE_ID = {
     ["Off"] = "off", ["Static"] = "static", ["Breathing"] = "breathing",
-    ["Combo"] = "combo", ["Theme"] = "theme", ["Colour Cycle"] = "cycle",
+    ["Combo"] = "combo", ["Theme"] = "theme", ["Color Cycle"] = "cycle",
     ["Rainbow"] = "rainbow", ["Screen React"] = "react",
     ["Stick React"] = "stickreact", ["Sparkle"] = "sparkle",
 }
@@ -91,7 +91,7 @@ local function listDir(path)
 end
 
 -- A ceiling of 0, a missing file, or a key that holds a path instead of a number
--- (screen/colour beside it does exactly that) all mean "assume 0-255".
+-- (screen/color beside it does exactly that) all mean "assume 0-255".
 local function ceiling(path)
     local v = tonumber(readFirstLine(path, nil))
     if v and v > 0 then return math.floor(v) end
@@ -129,9 +129,9 @@ function config.screenLedLevel()
     return (SCREEN_LED_FLOOR + math.floor((100 - SCREEN_LED_FLOOR) * pct / 100)) / 100
 end
 
--- --- Theme-colour resolution ------------------------------------------------
+-- --- Theme-color resolution ------------------------------------------------
 -- Theme mode lights the sticks to match the active muOS theme. In priority:
---   1. the theme's OWN RGB colour (rgb/colour_l) -- exactly what muOS's `murgb`
+--   1. the theme's OWN RGB color (rgb/colour_l) -- exactly what muOS's `murgb`
 --      reads for its "theme" RGB mode, so we match the system (only the stock
 --      theme ships this today);
 --   2. else the theme's selection accent, parsed from its scheme .ini;
@@ -153,7 +153,7 @@ local function hexToRGB(hex)
     }
 end
 
--- Skip near-white / near-black / near-grey so the sticks show a real accent, not a
+-- Skip near-white / near-black / near-gray so the sticks show a real accent, not a
 -- wash. (value < ~0.20 or saturation < 0.30.)
 local function isVivid(rgb)
     if not rgb then return false end
@@ -200,12 +200,12 @@ local function schemeAccent(dir, res)
     return nil
 end
 
-local function resolveThemeColour()
+local function resolveThemeColor()
     local active = readFirstLine(THEME_NAME_FILE, nil)
     if not (active and active ~= "") then return { THEME_DEFAULT[1], THEME_DEFAULT[2], THEME_DEFAULT[3] } end
     local dir = THEME_ROOT .. "/" .. active
 
-    -- 1. the theme's own RGB colour (authoritative -- matches muOS's murgb).
+    -- 1. the theme's own RGB color (authoritative -- matches muOS's murgb).
     local own = hexToRGB(readFirstLine(dir .. "/rgb/colour_l", nil))
     if own then return own end
 
@@ -226,11 +226,11 @@ end
 -- Right stick = first 8 LEDs in the serial packet; a = screen-left, b = right.
 -- `mode` picks WHICH saved combo to resolve, so save() can write every mode's pair
 -- on every write, regardless of the mode on screen.
-local function comboColours(s, mode)
+local function comboColors(s, mode)
     local f = tables.comboFields(mode)
     local c = tables.combos[s[f[1]]]
     if c.custom then
-        return colour.fromHue(s[f[2]]), colour.fromHue(s[f[3]])
+        return color.fromHue(s[f[2]]), color.fromHue(s[f[3]])
     end
     return c.a, c.b
 end
@@ -261,7 +261,7 @@ function config.load()
     s.serial = not s.sysfs and isCharDev(SERIAL_DEVICE)
     -- muOS's id for this board ("rgcubexx-h"); tables.deviceLabel() names it on screen.
     s.board = readFirstLine("/opt/muos/device/config/board/name", nil)
-    s.themeRGB = resolveThemeColour()
+    s.themeRGB = resolveThemeColor()
 
     -- Stick React reads the analog axes off the legacy joystick node. The index is
     -- NOT stable across devices - a CubeXX on muOS exposes js1, with no js0 at all -
@@ -309,7 +309,7 @@ function config.load()
     -- Sanity: single-stick devices can't use Combo.
     if s.sticks < 2 and s.mode == "Combo" then s.mode = "Static" end
     -- Sanity: the led_anim backend has no firmware animation, so those modes are hidden.
-    if s.sysfs and (s.mode == "Breathing" or s.mode == "Colour Cycle" or s.mode == "Rainbow") then
+    if s.sysfs and (s.mode == "Breathing" or s.mode == "Color Cycle" or s.mode == "Rainbow") then
         s.mode = "Static"
     end
     -- Sanity: no per-LED backend or no joystick node -> Stick React can't render.
@@ -327,23 +327,23 @@ end
 function config.save()
     if not config.path then return end
     local s = tables.state
-    local comboL, comboR = comboColours(s, "Combo")
-    local pulseBg, pulseFg = comboColours(s, "Stick React")
-    local sparkBg, sparkFg = comboColours(s, "Sparkle")
+    local comboL, comboR = comboColors(s, "Combo")
+    local pulseBg, pulseFg = comboColors(s, "Stick React")
+    local sparkBg, sparkFg = comboColors(s, "Sparkle")
     local lines = {
         "mode=" .. (MODE_ID[s.mode] or "off"),
         "brightness=" .. brightByte(s.bright),
         "speed=" .. (SPEED_ID[s.speed] or "med"),
-        "colour=" .. colour.toStr(colour.fromHue(s.hue)),
-        "combo_l=" .. colour.toStr(comboL),
-        "combo_r=" .. colour.toStr(comboR),
+        "color=" .. color.toStr(color.fromHue(s.hue)),
+        "combo_l=" .. color.toStr(comboL),
+        "combo_r=" .. color.toStr(comboR),
         -- Stick React: a = the ring at rest, b = the directional pulse.
-        "pulse_bg=" .. colour.toStr(pulseBg),
-        "pulse_fg=" .. colour.toStr(pulseFg),
+        "pulse_bg=" .. color.toStr(pulseBg),
+        "pulse_fg=" .. color.toStr(pulseFg),
         -- Sparkle: a = the ring at rest, b = the glints.
-        "spark_bg=" .. colour.toStr(sparkBg),
-        "spark_fg=" .. colour.toStr(sparkFg),
-        "theme_colour=" .. colour.toStr(s.themeRGB or { 255, 170, 50 }),
+        "spark_bg=" .. color.toStr(sparkBg),
+        "spark_fg=" .. color.toStr(sparkFg),
+        "theme_color=" .. color.toStr(s.themeRGB or { 255, 170, 50 }),
         "lowbatt_action=" .. (LOWB_ID[s.lowbatt] or "none"),
         "bright_mode=" .. (BRIM_ID[s.brightmode] or "direct"),
         -- UI-only restore keys (the daemon ignores unknown keys).

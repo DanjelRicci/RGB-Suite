@@ -15,12 +15,12 @@ local REPEAT_RATE  = 0.13  -- and this long between each repeat after that
 local sinceMove = REPEAT_DELAY
 local repeating = false    -- true once the held direction has actually repeated
 local lastDir              -- direction that produced the last action, nil if released
--- Re-opens the boot-persistence note, on the button labelled X.
+-- Re-opens the boot-persistence note, on the button labeled X.
 --
 -- Device-confirmed 2026-09-11: muOS on the CubeXX maps the face buttons by their
 -- PRINTED LABEL, not by SDL's positional convention - so "x" is the X button, and
 -- SDL's usual "north = y" rule does NOT hold here ("y" turned out to be the button
--- labelled Y). Do not "correct" this to "y".
+-- labeled Y). Do not "correct" this to "y".
 local BTN_INFO = "x"
 
 local joystick
@@ -57,7 +57,7 @@ end
 
 local function wrap(i, n) return ((i - 1) % n) + 1 end
 
--- Scrub the stick colour over the hue grid (8-deg steps, 0..352) plus a white
+-- Scrub the stick color over the hue grid (8-deg steps, 0..352) plus a white
 -- stop (-1) tucked in past either end - a pure hue can never reach white.
 local function scrubHue(cur, dir)
     if cur < 0 then return (dir > 0) and 0 or 352 end
@@ -78,7 +78,7 @@ local function adjust(dir)
     local s = tables.state
     local k = tables.rowKeys()[s.sel]
 
-    -- Pressing into a greyed chevron gets its own cue and changes nothing. This is
+    -- Pressing into a grayed chevron gets its own cue and changes nothing. This is
     -- the single gate for every clamped row, so it also stops the pointless
     -- settings.cfg write + daemon poke a no-op used to trigger.
     local canL, canR = tables.canAdjust(k)
@@ -93,15 +93,15 @@ local function adjust(dir)
         for i, m in ipairs(list) do if m == s.mode then idx = i break end end
         s.mode = list[wrap(idx + dir, #list)]
         s.sel = 1
-    elseif k == "colour" then
+    elseif k == "color" then
         s.hue = scrubHue(s.hue, dir)
     elseif k == "combo" then
         local f = tables.comboFields()
         s[f[1]] = wrap(s[f[1]] + dir, #tables.combos)
-    elseif k == "lcolour" then
+    elseif k == "lcolor" then
         local f = tables.comboFields()
         s[f[2]] = scrubHue(s[f[2]], dir)
-    elseif k == "rcolour" then
+    elseif k == "rcolor" then
         local f = tables.comboFields()
         s[f[3]] = scrubHue(s[f[3]], dir)
     elseif k == "speed" then
@@ -109,7 +109,7 @@ local function adjust(dir)
     elseif k == "brightmode" then
         s.brightmode = math.max(1, math.min(#tables.brightmodes, s.brightmode + dir))
     elseif k == "bright" then
-        -- the greyed-chevron gate above already covers Screen mode, where both
+        -- the grayed-chevron gate above already covers Screen mode, where both
         -- directions are refused
         s.bright = math.max(0, math.min(1, math.floor((s.bright + dir * 0.05) * 100 + 0.5) / 100))
     elseif k == "lowbatt" then

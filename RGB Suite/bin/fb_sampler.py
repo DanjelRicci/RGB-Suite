@@ -8,9 +8,9 @@
 # Writes "R" to the reply pipe once it is up, then for every request line reads the
 # 4-byte BGRA pixel at each point and replies with the weighted sums SAMPLE needs, on one
 # line: "WR WG WB WT" for one stick, "WR_L WG_L WB_L WT_L WR_R WG_R WB_R WT_R" for two.
-# The daemon keeps the geometry (REACT_SETUP) and the colour boost (BOOST_COLOUR).
+# The daemon keeps the geometry (REACT_SETUP) and the color boost (BOOST_COLOR).
 #
-# THE WEIGHTING BELOW MIRRORS SAMPLE's SHELL PATH IN rgb_suite.sh - integer maths included.
+# THE WEIGHTING BELOW MIRRORS SAMPLE's SHELL PATH IN rgb_suite.sh - integer math included.
 # Change one, change both; they were checked to give identical targets on the device.
 # See ARCHITECTURE.md -> Screen React.
 #
@@ -67,7 +67,7 @@ while True:
         if sticks == 1:
             s[0] += r * w; s[1] += g * w; s[2] += b * w; s[3] += w
         else:
-            # the centre band [right_bound, left_bound) counts toward both sticks
+            # the center band [right_bound, left_bound) counts toward both sticks
             if x < left_bound:
                 s[0] += r * w; s[1] += g * w; s[2] += b * w; s[3] += w
             if x >= right_bound:

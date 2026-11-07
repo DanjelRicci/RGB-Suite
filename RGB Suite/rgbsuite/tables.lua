@@ -1,26 +1,26 @@
 -- tables.lua - the mode/row model + live UI state + small logic helpers.
 -- Mirrors the locked mockup (MODES / ROWS / COMBOS / rowKeys / accent).
 
-local colour = require("colour")
+local color = require("color")
 
 local tables = {}
 
 -- Display names; internal ids are mapped in config.lua.
 tables.modes = {
     "Off", "Static", "Breathing", "Combo",
-    "Theme", "Colour Cycle", "Rainbow", "Sparkle", "Screen React", "Stick React",
+    "Theme", "Color Cycle", "Rainbow", "Sparkle", "Screen React", "Stick React",
 }
 
 -- Mode-specific rows only (the top group). Mode is prepended in modeKeys();
--- "combo" also brings the two colour rows on Custom, right under it. Brightness +
+-- "combo" also brings the two color rows on Custom, right under it. Brightness +
 -- Low Battery are NOT here - they are the shared global group (see globalKeys()).
 tables.rows = {
     ["Off"]          = {},
-    ["Static"]       = { "colour" },
-    ["Breathing"]    = { "colour", "speed" },
+    ["Static"]       = { "color" },
+    ["Breathing"]    = { "color", "speed" },
     ["Combo"] = { "combo" },
     ["Theme"]        = {},
-    ["Colour Cycle"] = { "speed" },
+    ["Color Cycle"]  = { "speed" },
     ["Rainbow"]      = { "speed" },
     ["Sparkle"]      = { "combo", "speed" },
     ["Screen React"] = {},
@@ -58,7 +58,7 @@ tables.combos = {
     { n = "Forest",       a = { 34, 139, 34 },   b = { 101, 67, 33 } },
     { n = "Galaxy",       a = { 72, 0, 255 },    b = { 255, 0, 200 } },
     { n = "Strawberry",   a = { 220, 20, 60 },   b = { 255, 182, 193 } },
-    { n = "Vapourwave",   a = { 255, 113, 206 }, b = { 1, 205, 254 } },
+    { n = "Vaporwave",    a = { 255, 113, 206 }, b = { 1, 205, 254 } },
     { n = "Custom",       custom = true },
 }
 
@@ -66,7 +66,7 @@ tables.combos = {
 -- different things by it - Combo: left stick / right stick; Stick React: resting
 -- ring / pulse highlight; Sparkle: resting ring / glints - and each keeps its OWN
 -- selection, so picking Cyberpunk in one doesn't disturb the others. The row keys
--- stay shared ("combo"/"lcolour"/"rcolour"); this table says which state fields
+-- stay shared ("combo"/"lcolor"/"rcolor"); this table says which state fields
 -- those rows are pointing at right now.
 local COMBO_FIELDS = {
     ["Combo"]       = { "combo",      "customL", "customR" },
@@ -87,16 +87,16 @@ function tables.comboSel(mode)
 end
 
 tables.labelFor = {
-    mode = "Mode", colour = "Colour", combo = "Combination", speed = "Speed",
+    mode = "Mode", color = "Color", combo = "Combination", speed = "Speed",
     brightmode = "Brightness Mode", bright = "Brightness",
-    lcolour = "L Colour", rcolour = "R Colour", lowbatt = "Low Battery",
+    lcolor = "L Color", rcolor = "R Color", lowbatt = "Low Battery",
 }
 
 -- Stick React and Sparkle reuse the Combo rows, so their two swatches need their own
 -- names: they are not two sticks, they are the ring at rest and what lights up on it.
 local PAIR_LABEL = {
-    ["Stick React"] = { lcolour = "Ring Colour", rcolour = "Pulse Colour" },
-    ["Sparkle"]     = { lcolour = "Ring Colour", rcolour = "Sparkle Colour" },
+    ["Stick React"] = { lcolor = "Ring Color", rcolor = "Pulse Color" },
+    ["Sparkle"]     = { lcolor = "Ring Color", rcolor = "Sparkle Color" },
 }
 
 function tables.labelOf(key)
@@ -108,7 +108,7 @@ end
 -- Live state (defaults match the mockup's `st`).
 tables.state = {
     mode = "Static",
-    hue = 192,          -- Static/Breathing colour: -1 = white, else 0..352 step 8
+    hue = 192,          -- Static/Breathing color: -1 = white, else 0..352 step 8
     combo = 1,          -- 1..#combos (Custom is last)
     customL = 328,      -- Custom Combo left hue (-1 = white)
     customR = 168,      -- Custom Combo right hue (-1 = white)
@@ -127,13 +127,13 @@ tables.state = {
     lowbatt = 1,        -- 1..4 -> None/Dim 50%/Off/Breathe Red (global)
     sel = 1,            -- selected row index
     sticks = 2,         -- read from the device
-    themeRGB = { 255, 170, 50 }, -- overwritten at load by config.resolveThemeColour()
+    themeRGB = { 255, 170, 50 }, -- overwritten at load by config.resolveThemeColor()
     sysfs = false,      -- true on TrimUI (led_anim backend); hides firmware-anim modes
     serial = false,     -- true when the H700 serial port exists (and led_anim doesn't)
     board = nil,        -- muOS board id, e.g. "rgcubexx-h"; nil when not on a device
 }
 
-function tables.isChild(key) return key == "lcolour" or key == "rcolour" end
+function tables.isChild(key) return key == "lcolor" or key == "rcolor" end
 
 -- Readable names for the RGB boards, keyed by the id muOS reports in board/name. A
 -- board missing here is shown by its muOS id instead: still correct, just less tidy.
@@ -167,7 +167,7 @@ function tables.effectiveBright()
 end
 
 -- Whether the highlighted row can still move left / right. Wrapping rows (mode,
--- combo, hue) are always both-true; clamped rows grey the arrow at their limit.
+-- combo, hue) are always both-true; clamped rows gray the arrow at their limit.
 function tables.canAdjust(key)
     local s = tables.state
     if key == "speed" then return s.speed > 1, s.speed < 3
@@ -180,10 +180,10 @@ function tables.canAdjust(key)
     return true, true
 end
 
--- Modes offered right now. Combo needs two sticks; Breathing/Colour Cycle/Rainbow are
+-- Modes offered right now. Combo needs two sticks; Breathing/Color Cycle/Rainbow are
 -- H700 firmware animations with no usable equivalent on the TrimUI led_anim backend,
 -- so they're hidden there.
-local ANIM_MODE = { ["Breathing"] = true, ["Colour Cycle"] = true, ["Rainbow"] = true }
+local ANIM_MODE = { ["Breathing"] = true, ["Color Cycle"] = true, ["Rainbow"] = true }
 function tables.availableModes()
     local s = tables.state
     local out = {}
@@ -205,10 +205,10 @@ function tables.modeKeys()
     if tables.usesCombo(s.mode) then
         keys[#keys + 1] = "combo"
         if tables.combos[tables.comboSel()].custom then
-            keys[#keys + 1] = "lcolour"
-            keys[#keys + 1] = "rcolour"
+            keys[#keys + 1] = "lcolor"
+            keys[#keys + 1] = "rcolor"
         end
-        -- anything after the pair (Sparkle's Speed) sits below its colour rows
+        -- anything after the pair (Sparkle's Speed) sits below its color rows
         for _, k in ipairs(tables.rows[s.mode]) do
             if k ~= "combo" then keys[#keys + 1] = k end
         end
@@ -245,22 +245,22 @@ end
 function tables.maxModeRows()
     local best = 1
     for _, m in ipairs(tables.availableModes()) do
-        -- Mode + its rows, plus the two colour rows a Combination brings on Custom.
+        -- Mode + its rows, plus the two color rows a Combination brings on Custom.
         local n = 1 + #tables.rows[m] + (tables.usesCombo(m) and 2 or 0)
         if n > best then best = n end
     end
     return best
 end
 
--- Highlight/accent colour = a preview of what the current mode drives.
+-- Highlight/accent color = a preview of what the current mode drives.
 function tables.accent()
     local s = tables.state
     if s.mode == "Static" or s.mode == "Breathing" then
-        return colour.fromHue(s.hue)
+        return color.fromHue(s.hue)
     elseif tables.usesCombo(s.mode) then
         local f = tables.comboFields()
         local c = tables.combos[s[f[1]]]
-        return c.custom and colour.fromHue(s[f[2]]) or c.a
+        return c.custom and color.fromHue(s[f[2]]) or c.a
     elseif s.mode == "Theme" then
         return s.themeRGB or { 255, 170, 50 }
     elseif s.mode == "Off" then

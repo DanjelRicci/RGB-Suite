@@ -7,7 +7,7 @@
 -- offset below a faint divider. Text is Roboto Mono with linear filtering.
 
 local tables = require("tables")
-local colour = require("colour")
+local color = require("color")
 
 local draw = {}
 
@@ -22,7 +22,7 @@ local C_CHILD_SEL  = { 0xe6 / 255, 0xe9 / 255, 0xf0 / 255 }
 local C_VALUE      = { 0xc6 / 255, 0xcb / 255, 0xd6 / 255 }
 local C_ARROW      = { 0x6a / 255, 0x71 / 255, 0x80 / 255 } -- enabled, unselected
 local C_ARROW_SEL  = { 0xec / 255, 0xee / 255, 0xf4 / 255 } -- enabled, selected (white)
-local C_ARROW_OFF  = { 0x2c / 255, 0x31 / 255, 0x3c / 255 } -- at a list limit (greyed)
+local C_ARROW_OFF  = { 0x2c / 255, 0x31 / 255, 0x3c / 255 } -- at a list limit (grayed)
 local C_SUB        = { 0x56 / 255, 0x5d / 255, 0x6d / 255 }
 local C_HINT       = { 0x56 / 255, 0x5d / 255, 0x6d / 255 }
 local C_HINT_B     = { 0x9a / 255, 0xa0 / 255, 0xad / 255 }
@@ -48,11 +48,11 @@ local F = {}
 local L = {}
 local bgMesh, washShader, scanShader
 local washT = 0
-local washL, washR = { 0, 0, 0 }, { 0, 0, 0 }  -- animated edge colours (0-1)
+local washL, washR = { 0, 0, 0 }, { 0, 0, 0 }  -- animated edge colors (0-1)
 local washFade = 0                              -- 0..1 cross-fade in/out of Screen React
 local WASH_FADE_SECS = 0.4                       -- matches the HTML .wash opacity transition
 
--- Screen React wash (fragment shader): vivid colour hugging each edge with an
+-- Screen React wash (fragment shader): vivid color hugging each edge with an
 -- inverse-exponential fall-off (thin bright core, quick drop, long faint tail) and
 -- a slight rounded bulge (elliptical radius, taller than wide). Mirrors the mockup.
 local WASH_SRC = [[
@@ -72,8 +72,8 @@ local WASH_SRC = [[
         if (d <= u_plateau) return 1.0;
         return exp(-u_k * (d - u_plateau) / (1.0 - u_plateau));
     }
-    // Output the dominant edge colour with the edge's alpha (transparent toward
-    // the centre) so the wash blends over the app's real background, not black.
+    // Output the dominant edge color with the edge's alpha (transparent toward
+    // the center) so the wash blends over the app's real background, not black.
     vec4 effect(vec4 vc, Image tx, vec2 uv, vec2 sc){
         float aL = edgeA(sc, vec2(0.0, u_res.y * 0.5));
         float aR = edgeA(sc, vec2(u_res.x, u_res.y * 0.5));
@@ -156,7 +156,7 @@ function draw.load()
         { W, H, 1, 1, C_BG_BOT[1], C_BG_BOT[2], C_BG_BOT[3], 1 },
     }, "strip", "static")
 
-    -- Screen React wash + scanline shaders (created once, re-parametrised on resize).
+    -- Screen React wash + scanline shaders (created once, re-parameterized on resize).
     if not washShader then washShader = love.graphics.newShader(WASH_SRC) end
     if not scanShader then scanShader = love.graphics.newShader(SCAN_SRC) end
     washShader:send("u_res", { W, H })
@@ -189,7 +189,7 @@ function draw.load()
     -- Five mode rows (Sparkle on Custom) plus three global rows overflow a square screen
     -- by ~3 cq. The rows keep their height; the gaps between them close up just enough
     -- instead. The subtitle's baseline sits right at the stage top, so the block moves
-    -- down 2 cq into the hint bar's top padding (the hint text is centred in its 11 cq,
+    -- down 2 cq into the hint bar's top padding (the hint text is centered in its 11 cq,
     -- well clear of that). A layout that already fits keeps its spacing and centring.
     if block > stageH then
         local top, bottom = stageTop + 2 * cq, H - hintsH + 2 * cq
@@ -209,10 +209,10 @@ end
 function draw.update(dt)
     washT = washT + dt
     local t = washT
-    -- Vivid edge colours (full lightness so the sticks read bright); the shader
-    -- handles the fall-off toward the black centre.
-    local Lh = colour.hsl2rgb((t * 22) % 360, 90, 52)
-    local Rh = (tables.state.sticks < 2) and Lh or colour.hsl2rgb((t * 22 + 150) % 360, 90, 52)
+    -- Vivid edge colors (full lightness so the sticks read bright); the shader
+    -- handles the fall-off toward the black center.
+    local Lh = color.hsl2rgb((t * 22) % 360, 90, 52)
+    local Rh = (tables.state.sticks < 2) and Lh or color.hsl2rgb((t * 22 + 150) % 360, 90, 52)
     washL = { Lh[1] / 255, Lh[2] / 255, Lh[3] / 255 }
     washR = { Rh[1] / 255, Rh[2] / 255, Rh[3] / 255 }
 
@@ -228,7 +228,7 @@ end
 local function drawPill(cRight, cy, rgb)
     local w, h = 17 * cq, 3.6 * cq
     local x, y = cRight - w, cy - h / 2
-    colour.set(rgb)
+    color.set(rgb)
     love.graphics.rectangle("fill", x, y, w, h, 1 * cq)
     setC(C_PILL_EDGE)
     love.graphics.setLineWidth(math.max(1, 0.3 * cq))
@@ -258,8 +258,8 @@ local function drawCombo(cRight, cy, sel)
     local c = tables.combos[s[f[1]]]
     local a, b, name
     if c.custom then
-        a = colour.fromHue(s[f[2]])
-        b = colour.fromHue(s[f[3]])
+        a = color.fromHue(s[f[2]])
+        b = color.fromHue(s[f[3]])
         name = "Custom"
     else
         a, b, name = c.a, c.b, c.n
@@ -275,7 +275,7 @@ local function drawCombo(cRight, cy, sel)
     local n = 18
     for i = 0, n - 1 do
         local t = (n > 1) and (i / (n - 1)) or 0
-        colour.set(colour.lerp(a, b, t))
+        color.set(color.lerp(a, b, t))
         love.graphics.rectangle("fill", x + i * w / n, y, w / n + 1, h)
     end
     love.graphics.setStencilTest()
@@ -295,7 +295,7 @@ end
 
 local function drawBright(cRight, cy, sel)
     -- In Screen mode this row is a readout of the panel, not a control: the arrows
-    -- are already greyed by canAdjust, and the fill drops to a muted grey so it
+    -- are already grayed by canAdjust, and the fill drops to a muted gray so it
     -- doesn't read as something you can push.
     local readOnly = tables.brightFollowsScreen()
     local value = tables.effectiveBright()
@@ -328,12 +328,12 @@ local function drawContent(key, cRight, cy, sel)
         return drawText(cRight, cy, tables.lowbatt[s.lowbatt], F.value, sel and C_LABEL_SEL or C_VALUE)
     elseif key == "brightmode" then
         return drawText(cRight, cy, tables.brightmodes[s.brightmode], F.value, sel and C_LABEL_SEL or C_VALUE)
-    elseif key == "colour" then
-        return drawPill(cRight, cy, colour.fromHue(s.hue))
-    elseif key == "lcolour" then
-        return drawPill(cRight, cy, colour.fromHue(s[tables.comboFields()[2]]))
-    elseif key == "rcolour" then
-        return drawPill(cRight, cy, colour.fromHue(s[tables.comboFields()[3]]))
+    elseif key == "color" then
+        return drawPill(cRight, cy, color.fromHue(s.hue))
+    elseif key == "lcolor" then
+        return drawPill(cRight, cy, color.fromHue(s[tables.comboFields()[2]]))
+    elseif key == "rcolor" then
+        return drawPill(cRight, cy, color.fromHue(s[tables.comboFields()[3]]))
     elseif key == "combo" then
         return drawCombo(cRight, cy, sel)
     elseif key == "bright" then
@@ -351,7 +351,7 @@ local function drawRow(y, key, sel, accent)
     if sel then
         setC(C_ROWSEL)
         love.graphics.rectangle("fill", L.menuX, y, L.menuW, L.rowH, 2 * cq)
-        colour.set(accent)
+        color.set(accent)
         love.graphics.rectangle("fill", L.menuX, y + 1.2 * cq, 0.8 * cq, L.rowH - 2.4 * cq, 0.4 * cq)
     end
 
@@ -366,7 +366,7 @@ local function drawRow(y, key, sel, accent)
     love.graphics.print(tables.labelOf(key), lx, cy - lfont:getHeight() / 2)
 
     -- value cluster: [<] content [>], right-aligned. Arrows are neutral white
-    -- (bright when selected), greyed out when that direction has hit its limit.
+    -- (bright when selected), grayed out when that direction has hit its limit.
     local canL, canR = tables.canAdjust(key)
     local base = sel and C_ARROW_SEL or C_ARROW
     local colL = canL and base or C_ARROW_OFF
@@ -399,7 +399,7 @@ local function drawTopbar()
     for i = 1, #text do
         local ch = text:sub(i, i)
         local w = font:getWidth(ch)
-        colour.set(sampleWord((acc + w / 2) / total))   -- 0-255 stops -> colour.set divides
+        color.set(sampleWord((acc + w / 2) / total))   -- 0-255 stops -> color.set divides
         love.graphics.print(ch, x, y)
         x = x + w + spacing
         acc = acc + w + spacing
@@ -507,7 +507,7 @@ function draw.hintCard()
         love.graphics.rectangle("fill", cardX, cardY, cardW, cardH, 2.2 * cq)
     end, "replace", 1)
     love.graphics.setStencilTest("greater", 0)
-    colour.set(HINT_ACCENT)
+    color.set(HINT_ACCENT)
     love.graphics.rectangle("fill", cardX, cardY, cardW, 0.8 * cq)
     love.graphics.setStencilTest()
     setC(C_PILL_EDGE)                                       -- border
@@ -515,7 +515,7 @@ function draw.hintCard()
     love.graphics.rectangle("line", cardX, cardY, cardW, cardH, 2.2 * cq)
 
     local y = cardY + pad
-    love.graphics.setFont(headFont); colour.set(HINT_ACCENT)
+    love.graphics.setFont(headFont); color.set(HINT_ACCENT)
     love.graphics.printf(HINT_HEAD, cardX + pad, y, innerW, "center")
     y = y + headFont:getHeight() + gap1
     love.graphics.setFont(bodyFont); setC(C_VALUE)
