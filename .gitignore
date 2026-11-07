@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Runtime config. The app rewrites this on every settings change, and shipping it
+# inside the .muxapp overwrites the user's own settings on every install - that was
+# a real bug once. It is excluded from the package build too; keep both.
+RGB Suite/settings.cfg
+RGB Suite/settings.cfg.tmp
+
+# Built packages live in ../releases, outside the repo
+*.muxapp
+
+# Claude files
+/ARCHITECTURE.md
+/CLAUDE.md
