@@ -22,6 +22,8 @@ https://github.com/user-attachments/assets/8cf09f31-3f2b-45a4-8b6b-9a73301d4889
 ## 🔗 Compatibility
 **This app is built specifically for MustardOS Andromeda and might not work with other versions of MustardOS.** Compatibility covers H700 Anbernic devices and TrimUI devices, but has only been tested on Anbernic RGCubeXX. Please let me know for any TrimUI compatibility problem!
 
+The app correctly interfaces with MustardOS power functions like sleep, screensaver, screen dim and low battery.
+
 ## 📦 Installation
 - **Step 1**: download the latest package from [Releases](https://github.com/DanjelRicci/RGB-Suite/releases) and place it into the `ARCHIVE` folder of your MustardOS storage. Go to Applications > Archive Manager, select *RGB_Suite* to install it.
 - **Step 2**: go to Configuration > General > Additionals (page 2) > Device Lights, set *Mode* to *External*. This leaves full led control to external apps.
