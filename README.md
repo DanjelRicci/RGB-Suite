@@ -6,6 +6,13 @@ A small app with full RGB controls for handheld devices running [MustardOS](http
 https://github.com/user-attachments/assets/8cf09f31-3f2b-45a4-8b6b-9a73301d4889
 > This is [mer ork](https://www.lexaloffle.com/bbs/?pid=152206) running on native Pico-8, showcasing the *Screen React* RGB mode. Volume up!
 
+## ⭐️ Overview
+- Many RGB modes in one app
+- Integrates with all MustardOS energy saving features
+- Unique *Screen React* mode supporting any aspect ratio
+- Extremely CPU efficient background process
+- User friendly, requires minimal one-time setup
+
 ## 💡 RGB modes
 - **Static**: fixed color.
 - **Breathing**: fixed color smoothly fading in and out.
